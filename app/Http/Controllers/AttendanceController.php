@@ -27,6 +27,14 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Invalid QR code.'], 404);
         }
 
+        if (! $event->isScanOpen()) {
+    return response()->json(['message' => 'Scanning is not open for this event right now.'], 422);
+}
+
+if (! $event->isEligible($student)) {
+    return response()->json(['message' => "{$student->name} is not on the list for this event."], 403);
+}
+
         $attendance = Attendance::firstOrCreate([
             'event_id' => $event->id,
             'user_id' => $student->id,
@@ -37,6 +45,9 @@ class AttendanceController extends Controller
 
             return response()->json(['message' => "{$student->name} checked in."]);
         }
+        if (! $event->requires_checkout) {
+    return response()->json(['message' => "{$student->name} is already checked in."]);
+}
 
         if (! $attendance->checked_out_at) {
             // Ignore double scans within one minute

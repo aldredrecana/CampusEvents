@@ -22,7 +22,7 @@ Route::get('/admin', function () {
     return 'Admin area';
 })->middleware(['auth', 'role:admin']);
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::get('/my-qr', fn () => view('my-qr'))->name('my-qr');
 

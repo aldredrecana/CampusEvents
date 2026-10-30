@@ -29,23 +29,40 @@ class RegisteredUserController extends Controller
      * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => [
+            'required', 'string', 'lowercase', 'email', 'max:255',
+            'unique:' . User::class,
+            function ($attribute, $value, $fail) {
+                $domain = config('campus.allowed_email_domain');
+                if ($domain && ! str_ends_with($value, '@' . $domain)) {
+                    $fail("Please use your school email (@{$domain}).");
+                }
+            },
+        ],
+        'student_number' => ['required', 'string', 'max:30', 'unique:users,student_number'],
+        'course' => ['required', 'in:' . implode(',', config('campus.courses'))],
+        'year_level' => ['required', 'integer', 'between:1,6'],
+        'section' => ['required', 'string', 'max:10'],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+    ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'student_number' => $request->student_number,
+        'course' => $request->course,
+        'year_level' => $request->year_level,
+        'section' => strtoupper(trim($request->section)),
+    ]);
 
-        event(new Registered($user));
+    event(new Registered($user));
 
-        Auth::login($user);
+    Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
-    }
+    return redirect(route('dashboard', absolute: false));
+}
 }
