@@ -33,6 +33,8 @@
                             <td class="p-3">{{ $event->ends_at->format('M d, Y h:i A') }}</td>
                             <td class="p-3 flex gap-3">
                                 @if (auth()->user()->role === 'admin' || $event->created_by === auth()->id())
+                                    <a href="{{ route('events.scan', $event) }}" class="text-green-600">Scan</a>
+                                    <a href="{{ route('events.attendees', $event) }}" class="text-gray-600">Attendees</a>
                                     <a href="{{ route('events.edit', $event) }}" class="text-indigo-600">Edit</a>
                                     <form method="POST" action="{{ route('events.destroy', $event) }}"
                                           onsubmit="return confirm('Delete this event?')">

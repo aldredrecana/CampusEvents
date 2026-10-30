@@ -18,6 +18,9 @@
                     <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
                         Events
                     </x-nav-link>
+                    <x-nav-link :href="route('my-qr')" :active="request()->routeIs('my-qr')">
+                        My QR
+                    </x-nav-link>
                 </div>
             </div>
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\AttendanceController;
 
 Route::redirect('/', '/login');
 
@@ -23,6 +24,7 @@ Route::get('/admin', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
+    Route::get('/my-qr', fn () => view('my-qr'))->name('my-qr');
 
     Route::middleware('role:admin,organizer')->group(function () {
         Route::get('/events/create', [EventController::class, 'create'])->name('events.create');

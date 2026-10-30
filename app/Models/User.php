@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -38,5 +39,12 @@ class User extends Authenticatable
 public function createdEvents()
 {
     return $this->hasMany(Event::class, 'created_by');
+}
+
+protected static function booted(): void
+{
+    static::creating(function ($user) {
+        $user->qr_token = (string) Str::uuid();
+    });
 }
 }
