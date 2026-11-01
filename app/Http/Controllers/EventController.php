@@ -7,12 +7,15 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    public function index()
-    {
-        $events = Event::with('creator')->orderBy('starts_at', 'desc')->paginate(10);
+    public function index(Request $request)
+{
+    $events = Event::visibleTo($request->user())
+        ->with('creator')
+        ->orderBy('starts_at', 'desc')
+        ->paginate(10);
 
-        return view('events.index', compact('events'));
-    }
+    return view('events.index', compact('events'));
+}
 
     public function create()
     {

@@ -84,10 +84,36 @@ public function canBeScannedBy(User $user): bool
 
     // Everyone expected at this event (used for absent lists in Phase 4)
     public function eligibleStudents()
-    {
-        return User::where('role', 'student')
-            ->when($this->target_courses, fn ($q, $v) => $q->whereIn('course', $v))
-            ->when($this->target_year_levels, fn ($q, $v) => $q->whereIn('year_level', $v))
-            ->when($this->target_sections, fn ($q, $v) => $q->whereIn('section', $v));
+{
+    return User::where('role', 'student')
+        ->where('created_at', '<=', $this->ends_at)
+        ->when($this->target_courses, fn ($q, $v) => $q->whereIn('course', $v))
+        ->when($this->target_year_levels, fn ($q, $v) => $q->whereIn('year_level', $v))
+        ->when($this->target_sections, fn ($q, $v) => $q->whereIn('section', $v));
+}
+
+    public function scopeVisibleTo($query, User $user)
+{
+    if ($user->role !== 'student') {
+        return $query;
     }
+
+    $fields = [
+        'target_courses' => $user->course,
+        'target_year_levels' => $user->year_level,
+        'target_sections' => $user->section,
+    ];
+
+    foreach ($fields as $column => $value) {
+        $query->where(function ($q) use ($column, $value) {
+            $q->whereNull($column)->orWhereJsonLength($column, 0);
+
+            if ($value !== null) {
+                $q->orWhereJsonContains($column, $value);
+            }
+        });
+    }
+
+    return $query;
+}
 }

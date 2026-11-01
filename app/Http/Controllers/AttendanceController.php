@@ -157,4 +157,28 @@ class AttendanceController extends Controller
             abort(403);
         }
     }
+    public function history(Request $request)
+{
+    $user = $request->user();
+    abort_unless($user->role === 'student', 403);
+
+    $attended = $user->attendances()
+        ->whereNotNull('checked_in_at')
+        ->with(['event' => fn ($q) => $q->withTrashed()])
+        ->orderByDesc('checked_in_at')
+        ->get()
+        ->filter(fn ($a) => $a->event);
+
+    $missed = Event::visibleTo($user)
+        ->where('ends_at', '<', now())
+        ->where('ends_at', '>', $user->created_at)
+        ->whereNotIn('id', $attended->pluck('event_id'))
+        ->orderByDesc('ends_at')
+        ->get();
+
+    $present = $attended->where('status', 'present')->count();
+    $late = $attended->where('status', 'late')->count();
+
+    return view('my-attendance', compact('attended', 'missed', 'present', 'late'));
+}
 }

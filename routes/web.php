@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EventStaffController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserManagementController;
 
 Route::redirect('/', '/login');
 
@@ -25,6 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Student QR
     Route::get('/my-qr', fn () => view('my-qr'))->name('my-qr');
     Route::get('/my-qr/code', [AttendanceController::class, 'myCode'])->name('my-qr.code');
+    Route::get('/my-attendance', [AttendanceController::class, 'history'])->name('my-attendance');
 
     // Scanning: the controller checks admin, creator, or assigned staff
     Route::get('/events/{event}/scan', [AttendanceController::class, 'scan'])->name('events.scan');
@@ -46,8 +48,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/events/archived', [EventController::class, 'archived'])->name('events.archived');
 Route::patch('/events/{event}/restore', [EventController::class, 'restore'])->withTrashed()->name('events.restore');
 Route::get('/events/{event}/export', [ReportController::class, 'event'])->name('events.export');
+Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::redirect('/', '/admin/users');
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
+    Route::patch('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+});
     });
 });
+
 Route::get('/admin', function () {
     return 'Admin area';
 })->middleware(['auth', 'role:admin']);
