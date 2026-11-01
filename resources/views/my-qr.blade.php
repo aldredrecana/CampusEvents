@@ -33,7 +33,9 @@
                     if (!res.ok) throw new Error('Server returned ' + res.status);
                     const data = await res.json();
                     await window.QRCode.toCanvas(canvas, data.token, {
-                        width: 260
+                        width: 360,
+                        margin: 4,
+                        errorCorrectionLevel: 'L'
                     });
                     status.textContent = 'Code refreshes every 30 seconds';
                 } catch (e) {
