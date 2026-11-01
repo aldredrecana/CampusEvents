@@ -17,29 +17,33 @@
                 automatically.</p>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+
     <script>
-        const canvas = document.getElementById('qr');
-        const status = document.getElementById('status');
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('qr');
+            const status = document.getElementById('status');
 
-        async function refresh() {
-            try {
-                const res = await fetch(@json(route('my-qr.code')), {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await res.json();
-                await QRCode.toCanvas(canvas, data.token, {
-                    width: 260
-                });
-                status.textContent = 'Code refreshes every 30 seconds';
-            } catch (e) {
-                status.textContent = 'Offline. Reconnect to get a fresh code.';
+            async function refresh() {
+                try {
+                    const res = await fetch(@json(route('my-qr.code')), {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (!res.ok) throw new Error('Server returned ' + res.status);
+                    const data = await res.json();
+                    await window.QRCode.toCanvas(canvas, data.token, {
+                        width: 260
+                    });
+                    status.textContent = 'Code refreshes every 30 seconds';
+                } catch (e) {
+                    status.textContent = 'Error: ' + e.message;
+                    console.error(e);
+                }
             }
-        }
 
-        refresh();
-        setInterval(refresh, 30000);
+            refresh();
+            setInterval(refresh, 30000);
+        });
     </script>
 </x-app-layout>

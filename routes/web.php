@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EventController;
-use App\Http\Controllers\AttendanceController;
 
 Route::redirect('/', '/login');
 
@@ -17,26 +17,30 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-
-Route::get('/admin', function () {
-    return 'Admin area';
-})->middleware(['auth', 'role:admin']);
-
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
+
+    // Student QR
     Route::get('/my-qr', fn () => view('my-qr'))->name('my-qr');
     Route::get('/my-qr/code', [AttendanceController::class, 'myCode'])->name('my-qr.code');
 
+    // Admin and organizer only
     Route::middleware('role:admin,organizer')->group(function () {
         Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
         Route::post('/events', [EventController::class, 'store'])->name('events.store');
         Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
         Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
         Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+
+        Route::get('/events/{event}/scan', [AttendanceController::class, 'scan'])->name('events.scan');
+        Route::post('/events/{event}/scan', [AttendanceController::class, 'store'])->name('events.scan.store');
         Route::post('/events/{event}/manual', [AttendanceController::class, 'manual'])->name('events.manual');
+        Route::get('/events/{event}/attendees', [AttendanceController::class, 'attendees'])->name('events.attendees');
     });
 });
 
+Route::get('/admin', function () {
+    return 'Admin area';
+})->middleware(['auth', 'role:admin']);
+
 require __DIR__.'/auth.php';
-
-
