@@ -8,6 +8,7 @@ class Attendance extends Model
 {
     protected $fillable = [
         'event_id', 'user_id', 'checked_in_at', 'checked_out_at',
+        'status', 'scanned_by', 'source', 'note',
     ];
 
     protected $casts = [
@@ -23,5 +24,10 @@ class Attendance extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scanner()
+    {
+        return $this->belongsTo(User::class, 'scanned_by');
     }
 }

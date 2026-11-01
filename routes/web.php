@@ -25,6 +25,7 @@ Route::get('/admin', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::get('/my-qr', fn () => view('my-qr'))->name('my-qr');
+    Route::get('/my-qr/code', [AttendanceController::class, 'myCode'])->name('my-qr.code');
 
     Route::middleware('role:admin,organizer')->group(function () {
         Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
         Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
         Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+        Route::post('/events/{event}/manual', [AttendanceController::class, 'manual'])->name('events.manual');
     });
 });
 

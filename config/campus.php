@@ -8,4 +8,7 @@ return [
     'courses' => ['BSIT'],
 
     'checkin_opens_minutes_before' => 30,
+
+    'qr_ttl_seconds' => env('QR_TTL_SECONDS', 60),
+    'min_minutes_before_checkout' => 5,
 ];
