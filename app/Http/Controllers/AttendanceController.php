@@ -86,22 +86,28 @@ class AttendanceController extends Controller
     }
 
     public function attendees(Request $request, Event $event)
-    {
-        $this->authorizeOwner($request, $event);
+{
+    $this->authorizeOwner($request, $event);
 
-        $attendances = $event->attendances()
-            ->with(['user', 'scanner'])
-            ->whereNotNull('checked_in_at')
-            ->orderBy('checked_in_at')
-            ->get();
+    $attendances = $event->attendances()
+        ->with(['user', 'scanner'])
+        ->whereNotNull('checked_in_at')
+        ->orderBy('checked_in_at')
+        ->get();
 
-        $expected = $event->eligibleStudents()->count();
-        $present = $attendances->where('status', 'present')->count();
-        $late = $attendances->where('status', 'late')->count();
-        $absent = max($expected - $attendances->count(), 0);
+    $absentees = $event->eligibleStudents()
+        ->whereNotIn('id', $attendances->pluck('user_id'))
+        ->orderBy('section')
+        ->orderBy('name')
+        ->get();
 
-        return view('events.attendees', compact('event', 'attendances', 'expected', 'present', 'late', 'absent'));
-    }
+    $expected = $event->eligibleStudents()->count();
+    $present = $attendances->where('status', 'present')->count();
+    $late = $attendances->where('status', 'late')->count();
+    $absent = $absentees->count();
+
+    return view('events.attendees', compact('event', 'attendances', 'absentees', 'expected', 'present', 'late', 'absent'));
+}
 
     private function record(Event $event, User $student, User $scanner, string $source, ?string $note = null): string
     {

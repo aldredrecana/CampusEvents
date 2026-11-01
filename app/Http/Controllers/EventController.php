@@ -49,7 +49,7 @@ class EventController extends Controller
         $this->authorizeOwner($request, $event);
         $event->delete();
 
-        return redirect()->route('events.index')->with('success', 'Event deleted.');
+        return redirect()->route('events.index')->with('success', 'Event archived.');
     }
 
     private function validated(Request $request): array
@@ -85,5 +85,25 @@ class EventController extends Controller
     if (! $event->canBeScannedBy($request->user())) {
         abort(403);
     }
+}
+
+public function archived(Request $request)
+{
+    $user = $request->user();
+
+    $events = Event::onlyTrashed()
+        ->when($user->role !== 'admin', fn ($q) => $q->where('created_by', $user->id))
+        ->orderBy('deleted_at', 'desc')
+        ->paginate(10);
+
+    return view('events.archived', compact('events'));
+}
+
+public function restore(Request $request, Event $event)
+{
+    $this->authorizeOwner($request, $event);
+    $event->restore();
+
+    return redirect()->route('events.index')->with('success', 'Event restored.');
 }
 }

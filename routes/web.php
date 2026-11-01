@@ -5,6 +5,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EventStaffController;
+use App\Http\Controllers\ReportController;
 
 Route::redirect('/', '/login');
 
@@ -42,6 +43,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/events/{event}/staff', [EventStaffController::class, 'index'])->name('events.staff');
         Route::post('/events/{event}/staff', [EventStaffController::class, 'store'])->name('events.staff.store');
         Route::delete('/events/{event}/staff/{user}', [EventStaffController::class, 'destroy'])->name('events.staff.destroy');
+        Route::get('/events/archived', [EventController::class, 'archived'])->name('events.archived');
+Route::patch('/events/{event}/restore', [EventController::class, 'restore'])->withTrashed()->name('events.restore');
+Route::get('/events/{event}/export', [ReportController::class, 'event'])->name('events.export');
     });
 });
 Route::get('/admin', function () {

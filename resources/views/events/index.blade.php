@@ -3,8 +3,11 @@
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800">Events</h2>
             @if (in_array(auth()->user()->role, ['admin', 'organizer']))
-                <a href="{{ route('events.create') }}" class="px-4 py-2 bg-gray-800 text-white rounded-md text-sm">New
-                    Event</a>
+                <div class="flex items-center gap-4">
+                    <a href="{{ route('events.archived') }}" class="text-sm text-gray-600">Archived</a>
+                    <a href="{{ route('events.create') }}" class="px-4 py-2 bg-gray-800 text-white rounded-md text-sm">New
+                        Event</a>
+                </div>
             @endif
         </div>
     </x-slot>
@@ -42,9 +45,9 @@
                                     <a href="{{ route('events.staff', $event) }}" class="text-blue-600">Staff</a>
                                     <a href="{{ route('events.edit', $event) }}" class="text-indigo-600">Edit</a>
                                     <form method="POST" action="{{ route('events.destroy', $event) }}"
-                                        onsubmit="return confirm('Delete this event?')">
+                                        onsubmit="return confirm('Archive this event? Attendance records are kept.')">
                                         @csrf @method('DELETE')
-                                        <button class="text-red-600">Delete</button>
+                                        <button class="text-red-600">Archive</button>
                                     </form>
                                 @endif
                             </td>

@@ -8,6 +8,13 @@
             <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
         @endif
 
+        @if ($event->canBeManagedBy(auth()->user()))
+            <div class="mb-4 text-right">
+                <a href="{{ route('events.export', $event) }}"
+                    class="inline-block px-4 py-2 bg-gray-800 text-white rounded-md text-sm">Download CSV</a>
+            </div>
+        @endif
+
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-center">
             <div class="bg-white p-3 shadow sm:rounded-lg">
                 <div class="text-2xl font-bold">{{ $expected }}</div>
@@ -23,7 +30,7 @@
             </div>
             <div class="bg-white p-3 shadow sm:rounded-lg">
                 <div class="text-2xl font-bold text-red-700">{{ $absent }}</div>
-                <div class="text-xs text-gray-500">Not yet in</div>
+                {{ $event->ends_at->isPast() ? 'Absent' : 'Not yet in' }}
             </div>
         </div>
 
@@ -91,5 +98,34 @@
                 </tbody>
             </table>
         </div>
+
+        <details class="mt-4 bg-white shadow sm:rounded-lg p-4">
+            <summary class="cursor-pointer font-semibold">
+                {{ $event->ends_at->isPast() ? 'Absent' : 'Not yet checked in' }} ({{ $absentees->count() }})
+            </summary>
+            <table class="min-w-full text-sm mt-3">
+                <thead class="text-left bg-gray-50">
+                    <tr>
+                        <th class="p-2">Student No.</th>
+                        <th class="p-2">Name</th>
+                        <th class="p-2">Section</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($absentees as $s)
+                        <tr class="border-t">
+                            <td class="p-2">{{ $s->student_number ?? '-' }}</td>
+                            <td class="p-2">{{ $s->name }}</td>
+                            <td class="p-2">{{ $s->course }} {{ $s->year_level }}-{{ $s->section }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="p-3 text-center text-gray-500">Everyone expected has checked in.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </details>
     </div>
 </x-app-layout>
