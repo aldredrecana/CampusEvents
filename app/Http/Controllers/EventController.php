@@ -81,11 +81,9 @@ class EventController extends Controller
 }
 
     private function authorizeOwner(Request $request, Event $event): void
-    {
-        $user = $request->user();
-
-        if ($user->role !== 'admin' && $event->created_by !== $user->id) {
-            abort(403);
-        }
+{
+    if (! $event->canBeScannedBy($request->user())) {
+        abort(403);
     }
+}
 }

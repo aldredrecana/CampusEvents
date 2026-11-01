@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EventStaffController;
 
 Route::redirect('/', '/login');
 
@@ -24,6 +25,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/my-qr', fn () => view('my-qr'))->name('my-qr');
     Route::get('/my-qr/code', [AttendanceController::class, 'myCode'])->name('my-qr.code');
 
+    // Scanning: the controller checks admin, creator, or assigned staff
+    Route::get('/events/{event}/scan', [AttendanceController::class, 'scan'])->name('events.scan');
+    Route::post('/events/{event}/scan', [AttendanceController::class, 'store'])->name('events.scan.store');
+    Route::post('/events/{event}/manual', [AttendanceController::class, 'manual'])->name('events.manual');
+    Route::get('/events/{event}/attendees', [AttendanceController::class, 'attendees'])->name('events.attendees');
+
     // Admin and organizer only
     Route::middleware('role:admin,organizer')->group(function () {
         Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
@@ -32,13 +39,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
         Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
 
-        Route::get('/events/{event}/scan', [AttendanceController::class, 'scan'])->name('events.scan');
-        Route::post('/events/{event}/scan', [AttendanceController::class, 'store'])->name('events.scan.store');
-        Route::post('/events/{event}/manual', [AttendanceController::class, 'manual'])->name('events.manual');
-        Route::get('/events/{event}/attendees', [AttendanceController::class, 'attendees'])->name('events.attendees');
+        Route::get('/events/{event}/staff', [EventStaffController::class, 'index'])->name('events.staff');
+        Route::post('/events/{event}/staff', [EventStaffController::class, 'store'])->name('events.staff.store');
+        Route::delete('/events/{event}/staff/{user}', [EventStaffController::class, 'destroy'])->name('events.staff.destroy');
     });
 });
-
 Route::get('/admin', function () {
     return 'Admin area';
 })->middleware(['auth', 'role:admin']);

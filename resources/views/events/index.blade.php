@@ -3,7 +3,8 @@
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800">Events</h2>
             @if (in_array(auth()->user()->role, ['admin', 'organizer']))
-                <a href="{{ route('events.create') }}" class="px-4 py-2 bg-gray-800 text-white rounded-md text-sm">New Event</a>
+                <a href="{{ route('events.create') }}" class="px-4 py-2 bg-gray-800 text-white rounded-md text-sm">New
+                    Event</a>
             @endif
         </div>
     </x-slot>
@@ -32,12 +33,16 @@
                             <td class="p-3">{{ $event->starts_at->format('M d, Y h:i A') }}</td>
                             <td class="p-3">{{ $event->ends_at->format('M d, Y h:i A') }}</td>
                             <td class="p-3 flex gap-3">
-                                @if (auth()->user()->role === 'admin' || $event->created_by === auth()->id())
+                                @if ($event->canBeScannedBy(auth()->user()))
                                     <a href="{{ route('events.scan', $event) }}" class="text-green-600">Scan</a>
-                                    <a href="{{ route('events.attendees', $event) }}" class="text-gray-600">Attendees</a>
+                                    <a href="{{ route('events.attendees', $event) }}"
+                                        class="text-gray-600">Attendees</a>
+                                @endif
+                                @if ($event->canBeManagedBy(auth()->user()))
+                                    <a href="{{ route('events.staff', $event) }}" class="text-blue-600">Staff</a>
                                     <a href="{{ route('events.edit', $event) }}" class="text-indigo-600">Edit</a>
                                     <form method="POST" action="{{ route('events.destroy', $event) }}"
-                                          onsubmit="return confirm('Delete this event?')">
+                                        onsubmit="return confirm('Delete this event?')">
                                         @csrf @method('DELETE')
                                         <button class="text-red-600">Delete</button>
                                     </form>
@@ -45,7 +50,9 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="p-4 text-center text-gray-500">No events yet.</td></tr>
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-gray-500">No events yet.</td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

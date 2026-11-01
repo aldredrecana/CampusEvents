@@ -63,6 +63,23 @@ class Event extends Model
         return true;
     }
 
+    public function staff()
+{
+    return $this->belongsToMany(User::class, 'event_staff')->withTimestamps();
+}
+
+public function canBeManagedBy(User $user): bool
+{
+    return $user->role === 'admin'
+        || ($user->role === 'organizer' && $this->created_by === $user->id);
+}
+
+public function canBeScannedBy(User $user): bool
+{
+    return $this->canBeManagedBy($user)
+        || $this->staff()->where('users.id', $user->id)->exists();
+}
+
     // Everyone expected at this event (used for absent lists in Phase 4)
     public function eligibleStudents()
     {
