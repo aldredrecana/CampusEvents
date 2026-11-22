@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventStaffController;
+use App\Http\Controllers\MasterlistController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserManagementController;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/events/{event}/scan', [AttendanceController::class, 'store'])->name('events.scan.store');
     Route::post('/events/{event}/manual', [AttendanceController::class, 'manual'])->name('events.manual');
     Route::get('/events/{event}/attendees', [AttendanceController::class, 'attendees'])->name('events.attendees');
+    Route::delete('/events/{event}/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('events.attendances.destroy');
 
     // Admin and organizers: manage events
     Route::middleware('role:admin,organizer')->group(function () {
@@ -59,6 +61,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
         Route::patch('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+
+        Route::get('/masterlist', [MasterlistController::class, 'index'])->name('masterlist.index');
+        Route::post('/masterlist', [MasterlistController::class, 'import'])->name('masterlist.import');
+        Route::get('/masterlist/template', [MasterlistController::class, 'template'])->name('masterlist.template');
     });
 });
 

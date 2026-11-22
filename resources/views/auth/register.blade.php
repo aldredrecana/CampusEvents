@@ -21,7 +21,7 @@
         <div class="mt-4">
             <x-input-label for="student_number" value="Student Number" />
             <x-text-input id="student_number" class="mt-1 block w-full" type="text" name="student_number"
-                :value="old('student_number')" required />
+                :value="old('student_number')" required placeholder="2023-00123-CL-0" />
             <x-input-error :messages="$errors->get('student_number')" class="mt-2" />
         </div>
 

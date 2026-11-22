@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\QrToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceController extends Controller
 {
@@ -107,6 +108,32 @@ class AttendanceController extends Controller
         $absent = $absentees->count();
 
         return view('events.attendees', compact('event', 'attendances', 'absentees', 'expected', 'present', 'late', 'absent'));
+    }
+
+    // Organizer/admin: remove a wrong check-in (gate staff cannot do this)
+    public function destroy(Request $request, Event $event, Attendance $attendance)
+    {
+        abort_unless($event->canBeManagedBy($request->user()), 403);
+        abort_unless($attendance->event_id === $event->id, 404);
+
+        $request->validate(['reason' => ['required', 'string', 'max:255']]);
+
+        $attendance->load('user');
+
+        // Kept in storage/logs/laravel.log so every removal can be traced
+        Log::warning('Check-in removed', [
+            'event' => $event->id,
+            'student' => $attendance->user_id,
+            'student_number' => $attendance->user?->student_number,
+            'checked_in_at' => $attendance->checked_in_at?->toDateTimeString(),
+            'status' => $attendance->status,
+            'removed_by' => $request->user()->id,
+            'reason' => $request->reason,
+        ]);
+
+        $attendance->delete();
+
+        return back()->with('success', "Check-in of {$attendance->user?->name} was removed.");
     }
 
     private function record(Event $event, User $student, User $scanner, string $source, ?string $note = null): string

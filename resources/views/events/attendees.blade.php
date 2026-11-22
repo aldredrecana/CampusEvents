@@ -8,6 +8,10 @@
             <div class="mb-4 rounded bg-green-100 p-3 text-green-800">{{ session('success') }}</div>
         @endif
 
+        @error('reason')
+            <div class="mb-4 rounded bg-red-100 p-3 text-red-800">{{ $message }}</div>
+        @enderror
+
         @if ($event->canBeManagedBy(auth()->user()))
             <div class="mb-4 text-right">
                 <a href="{{ route('events.export', $event) }}"
@@ -63,6 +67,9 @@
                         <th class="p-3">Check-out</th>
                         <th class="p-3">Status</th>
                         <th class="p-3">Source</th>
+                        @if ($event->canBeManagedBy(auth()->user()))
+                            <th class="p-3"></th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -89,10 +96,21 @@
                                     <div class="text-xs text-gray-500">{{ $a->note }}</div>
                                 @endif
                             </td>
+                            @if ($event->canBeManagedBy(auth()->user()))
+                                <td class="p-3 text-right">
+                                    <form method="POST"
+                                        action="{{ route('events.attendances.destroy', [$event, $a]) }}"
+                                        onsubmit="const r = prompt('Reason for removing this check-in? (required)'); if (!r) return false; this.reason.value = r;">
+                                        @csrf @method('DELETE')
+                                        <input type="hidden" name="reason">
+                                        <button class="text-xs text-red-700 hover:underline">Undo</button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="p-4 text-center text-gray-500">No attendance yet.</td>
+                            <td colspan="8" class="p-4 text-center text-gray-500">No attendance yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
