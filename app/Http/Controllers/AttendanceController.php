@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AttendanceStatus;
+use App\Enums\Role;
+use App\Http\Requests\ManualCheckInRequest;
 use App\Models\Attendance;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\QrToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 class AttendanceController extends Controller
@@ -58,22 +62,16 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function manual(Request $request, Event $event)
+    // ManualCheckInRequest already checked permission and validated the input
+    public function manual(ManualCheckInRequest $request, Event $event)
     {
-        $this->authorizeOwner($request, $event);
-
-        $request->validate([
-            'student_number' => ['required', 'string'],
-            'note' => ['required', 'string', 'max:255'],
-        ]);
-
-        $student = User::where('student_number', trim($request->student_number))->first();
+        $student = User::where('student_number', $request->student_number)->first();
 
         if (! $student) {
             return back()->withErrors(['student_number' => 'No student with that number.'])->withInput();
         }
 
-        if (! $event->isScanOpen() && $request->user()->role !== 'admin') {
+        if (! $event->isScanOpen() && $request->user()->role !== Role::Admin->value) {
             return back()->withErrors(['student_number' => 'Check-in is not open for this event.'])->withInput();
         }
 
@@ -103,8 +101,8 @@ class AttendanceController extends Controller
             ->get();
 
         $expected = $event->eligibleStudents()->count();
-        $present = $attendances->where('status', 'present')->count();
-        $late = $attendances->where('status', 'late')->count();
+        $present = $attendances->where('status', AttendanceStatus::Present->value)->count();
+        $late = $attendances->where('status', AttendanceStatus::Late->value)->count();
         $absent = $absentees->count();
 
         return view('events.attendees', compact('event', 'attendances', 'absentees', 'expected', 'present', 'late', 'absent'));
@@ -113,7 +111,7 @@ class AttendanceController extends Controller
     // Organizer/admin: remove a wrong check-in (gate staff cannot do this)
     public function destroy(Request $request, Event $event, Attendance $attendance)
     {
-        abort_unless($event->canBeManagedBy($request->user()), 403);
+        Gate::authorize('manage', $event);
         abort_unless($attendance->event_id === $event->id, 404);
 
         $request->validate(['reason' => ['required', 'string', 'max:255']]);
@@ -148,7 +146,7 @@ class AttendanceController extends Controller
 
             $attendance->update([
                 'checked_in_at' => now(),
-                'status' => $isLate ? 'late' : 'present',
+                'status' => $isLate ? AttendanceStatus::Late->value : AttendanceStatus::Present->value,
                 'scanned_by' => $scanner->id,
                 'source' => $source,
                 'note' => $note,
@@ -178,15 +176,13 @@ class AttendanceController extends Controller
 
     private function authorizeOwner(Request $request, Event $event): void
     {
-        if (! $event->canBeScannedBy($request->user())) {
-            abort(403);
-        }
+        Gate::authorize('scan', $event); // rules are in app/Policies/EventPolicy.php
     }
 
     public function history(Request $request)
     {
         $user = $request->user();
-        abort_unless($user->role === 'student', 403);
+        abort_unless($user->role === Role::Student->value, 403);
 
         $attended = $user->attendances()
             ->whereNotNull('checked_in_at')
@@ -202,8 +198,8 @@ class AttendanceController extends Controller
             ->orderByDesc('ends_at')
             ->get();
 
-        $present = $attended->where('status', 'present')->count();
-        $late = $attended->where('status', 'late')->count();
+        $present = $attended->where('status', AttendanceStatus::Present->value)->count();
+        $late = $attended->where('status', AttendanceStatus::Late->value)->count();
 
         return view('my-attendance', compact('attended', 'missed', 'present', 'late'));
     }

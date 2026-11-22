@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Role;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -46,7 +47,7 @@ class Event extends Model
 
     public function isEligible(User $user): bool
     {
-        if ($user->role !== 'student') {
+        if ($user->role !== Role::Student->value) {
             return false;
         }
 
@@ -71,22 +72,21 @@ class Event extends Model
         return $this->belongsToMany(User::class, 'event_staff')->withTimestamps();
     }
 
+    // The real rules are in app/Policies/EventPolicy.php
     public function canBeManagedBy(User $user): bool
     {
-        return $user->role === 'admin'
-            || ($user->role === 'organizer' && $this->created_by === $user->id);
+        return $user->can('manage', $this);
     }
 
     public function canBeScannedBy(User $user): bool
     {
-        return $this->canBeManagedBy($user)
-            || $this->staff()->where('users.id', $user->id)->exists();
+        return $user->can('scan', $this);
     }
 
     // Everyone expected at this event (used for absent lists in Phase 4)
     public function eligibleStudents()
     {
-        return User::where('role', 'student')
+        return User::where('role', Role::Student->value)
             ->where('created_at', '<=', $this->ends_at)
             ->when($this->target_courses, fn ($q, $v) => $q->whereIn('course', $v))
             ->when($this->target_year_levels, fn ($q, $v) => $q->whereIn('year_level', $v))
@@ -95,7 +95,7 @@ class Event extends Model
 
     public function scopeVisibleTo($query, User $user)
     {
-        if ($user->role !== 'student') {
+        if ($user->role !== Role::Student->value) {
             return $query;
         }
 

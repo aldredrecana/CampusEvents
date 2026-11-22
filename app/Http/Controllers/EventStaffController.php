@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EventStaffController extends Controller
 {
@@ -48,8 +49,6 @@ class EventStaffController extends Controller
 
     private function authorizeManage(Request $request, Event $event): void
     {
-        if (! $event->canBeManagedBy($request->user())) {
-            abort(403);
-        }
+        Gate::authorize('manage', $event); // rules are in app/Policies/EventPolicy.php
     }
 }

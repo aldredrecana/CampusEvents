@@ -32,5 +32,10 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Tests must not depend on anyone's personal .env -->
+        <env name="ALLOWED_EMAIL_DOMAIN" value=""/>
+        <env name="REQUIRE_MASTERLIST" value="false"/>
+        <env name="QR_TTL_SECONDS" value="45"/>
+        <env name="APP_TIMEZONE" value="Asia/Manila"/>
     </php>
 </phpunit>

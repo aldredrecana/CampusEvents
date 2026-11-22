@@ -4,15 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class ReportController extends Controller
 {
     public function event(Request $request, Event $event)
     {
-        if (! $event->canBeManagedBy($request->user())) {
-            abort(403);
-        }
+        Gate::authorize('manage', $event);
 
         $attendances = $event->attendances()->with(['user', 'scanner'])->get()->keyBy('user_id');
         $students = $event->eligibleStudents()->orderBy('section')->orderBy('name')->get();
