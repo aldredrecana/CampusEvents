@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl">My QR Code</h2>
+        <h2 class="text-xl font-semibold">My QR Code</h2>
     </x-slot>
-    <div class="py-8 max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-xl shadow overflow-hidden text-center">
-            <div class="bg-maroon-700 text-white py-3 border-b-4 border-gold-400">
+    <div class="mx-auto max-w-md px-4 py-8 sm:px-6 lg:px-8">
+        <div class="overflow-hidden rounded-xl bg-white text-center shadow">
+            <div class="border-b-4 border-gold-400 bg-maroon-700 py-3 text-white">
                 <div class="font-bold">{{ auth()->user()->name }}</div>
                 @if (auth()->user()->student_number)
                     <div class="text-sm text-gold-300">
@@ -18,7 +18,7 @@
                 <canvas id="qr" class="mx-auto max-w-full"></canvas>
 
                 {{-- Countdown bar so students can see when the code changes --}}
-                <div class="mt-4 h-2 rounded-full bg-maroon-100 overflow-hidden">
+                <div class="mt-4 h-2 overflow-hidden rounded-full bg-maroon-100">
                     <div id="bar" class="h-full bg-maroon-700" style="width: 100%"></div>
                 </div>
                 <p id="status" class="mt-2 text-xs text-gray-500">Loading code...</p>

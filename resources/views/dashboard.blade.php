@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl">Magandang araw, {{ Str::before($user->name, ' ') }}!</h2>
+        <h2 class="text-xl font-semibold">Magandang araw, {{ Str::before($user->name, ' ') }}!</h2>
         <p class="text-sm text-gray-500">{{ now()->format('l, F j, Y') }}</p>
     </x-slot>
 
-    <div class="py-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div class="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
 
         {{-- Stat cards --}}
-        <div class="grid {{ count($stats) > 3 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-3' }} gap-3 sm:gap-4">
+        <div class="{{ count($stats) > 3 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-3' }} grid gap-3 sm:gap-4">
             @foreach ($stats as $label => $value)
-                <div class="bg-white rounded-lg shadow-sm border-l-4 border-maroon-700 p-4">
+                <div class="rounded-lg border-l-4 border-maroon-700 bg-white p-4 shadow-sm">
                     <div class="text-3xl font-bold text-maroon-700">{{ $value }}</div>
                     <div class="text-xs uppercase tracking-wide text-gray-500">{{ $label }}</div>
                 </div>
@@ -20,35 +20,35 @@
         <div class="flex flex-wrap gap-3">
             @if ($user->role === 'student')
                 <a href="{{ route('my-qr') }}"
-                    class="px-5 py-3 rounded-lg bg-maroon-700 text-white font-semibold hover:bg-maroon-800">Show my
+                    class="rounded-lg bg-maroon-700 px-5 py-3 font-semibold text-white hover:bg-maroon-800">Show my
                     QR</a>
                 <a href="{{ route('my-attendance') }}"
-                    class="px-5 py-3 rounded-lg bg-gold-400 text-maroon-900 font-semibold hover:bg-gold-300">My
+                    class="rounded-lg bg-gold-400 px-5 py-3 font-semibold text-maroon-900 hover:bg-gold-300">My
                     attendance</a>
             @else
                 <a href="{{ route('events.create') }}"
-                    class="px-5 py-3 rounded-lg bg-maroon-700 text-white font-semibold hover:bg-maroon-800">+ New
+                    class="rounded-lg bg-maroon-700 px-5 py-3 font-semibold text-white hover:bg-maroon-800">+ New
                     event</a>
                 <a href="{{ route('events.index') }}"
-                    class="px-5 py-3 rounded-lg bg-gold-400 text-maroon-900 font-semibold hover:bg-gold-300">All
+                    class="rounded-lg bg-gold-400 px-5 py-3 font-semibold text-maroon-900 hover:bg-gold-300">All
                     events</a>
             @endif
         </div>
 
         {{-- Gate staff assignments --}}
         @if ($staffEvents->isNotEmpty())
-            <div class="bg-gold-50 border border-gold-300 rounded-lg p-4">
-                <h3 class="font-semibold text-maroon-800 mb-2">You are gate staff for</h3>
+            <div class="rounded-lg border border-gold-300 bg-gold-50 p-4">
+                <h3 class="mb-2 font-semibold text-maroon-800">You are gate staff for</h3>
                 <ul class="divide-y divide-gold-200">
                     @foreach ($staffEvents as $e)
-                        <li class="py-2 flex justify-between items-center gap-3">
+                        <li class="flex items-center justify-between gap-3 py-2">
                             <div>
                                 <div class="font-medium">{{ $e->title }}</div>
                                 <div class="text-xs text-gray-600">{{ $e->venue }} &middot;
                                     {{ $e->starts_at->format('M d, h:i A') }}</div>
                             </div>
                             <a href="{{ route('events.scan', $e) }}"
-                                class="shrink-0 px-3 py-1.5 rounded bg-maroon-700 text-white text-sm">Scan</a>
+                                class="shrink-0 rounded bg-maroon-700 px-3 py-1.5 text-sm text-white">Scan</a>
                         </li>
                     @endforeach
                 </ul>
@@ -56,14 +56,14 @@
         @endif
 
         {{-- Upcoming events --}}
-        <div class="bg-white rounded-lg shadow-sm">
-            <h3 class="px-4 py-3 border-b font-semibold text-maroon-800">Upcoming events</h3>
+        <div class="rounded-lg bg-white shadow-sm">
+            <h3 class="border-b px-4 py-3 font-semibold text-maroon-800">Upcoming events</h3>
             <ul class="divide-y">
                 @forelse ($upcoming as $e)
                     @php $live = now()->between($e->starts_at, $e->ends_at); @endphp
-                    <li class="px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+                    <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 text-center rounded bg-maroon-700 text-white py-1">
+                            <div class="w-12 rounded bg-maroon-700 py-1 text-center text-white">
                                 <div class="text-[10px] uppercase">{{ $e->starts_at->format('M') }}</div>
                                 <div class="text-lg font-bold leading-none">{{ $e->starts_at->format('d') }}</div>
                             </div>
@@ -72,7 +72,7 @@
                                     {{ $e->title }}
                                     @if ($live)
                                         <span
-                                            class="ms-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">LIVE</span>
+                                            class="ms-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-800">LIVE</span>
                                     @endif
                                 </div>
                                 <div class="text-xs text-gray-500">{{ $e->venue }} &middot;
@@ -82,9 +82,9 @@
                         @if ($user->role !== 'student')
                             <div class="flex items-center gap-3 text-sm">
                                 <span class="text-gray-500">{{ $e->checked_in_count }} checked in</span>
-                                <a href="{{ route('events.scan', $e) }}" class="text-maroon-700 font-semibold">Scan</a>
+                                <a href="{{ route('events.scan', $e) }}" class="font-semibold text-maroon-700">Scan</a>
                                 <a href="{{ route('events.attendees', $e) }}"
-                                    class="text-maroon-700 font-semibold">Attendees</a>
+                                    class="font-semibold text-maroon-700">Attendees</a>
                             </div>
                         @endif
                     </li>

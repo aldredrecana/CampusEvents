@@ -1,29 +1,29 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl">Scan: {{ $event->title }}</h2>
+        <h2 class="text-xl font-semibold">Scan: {{ $event->title }}</h2>
         <p class="text-sm text-gray-500">{{ $event->venue }} &middot; {{ $event->starts_at->format('M d, h:i A') }} -
             {{ $event->ends_at->format('h:i A') }}</p>
     </x-slot>
-    <div class="py-6 max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-xl px-4 py-6 sm:px-6 lg:px-8">
         @unless ($event->isScanOpen())
-            <div class="mb-4 p-3 rounded bg-gold-100 text-maroon-900 text-sm">
+            <div class="mb-4 rounded bg-gold-100 p-3 text-sm text-maroon-900">
                 Scanning opens at {{ $event->opensAt()->format('M d, h:i A') }} and closes at
                 {{ $event->ends_at->format('h:i A') }}.
             </div>
         @endunless
 
         {{-- Big result banner so staff can read it from arm's length --}}
-        <div id="result" class="mb-4 p-4 rounded-lg text-center text-lg font-semibold bg-gray-100 text-gray-600">
+        <div id="result" class="mb-4 rounded-lg bg-gray-100 p-4 text-center text-lg font-semibold text-gray-600">
             Point the camera at a student's QR code
         </div>
 
-        <div class="bg-white p-4 rounded-lg shadow">
+        <div class="rounded-lg bg-white p-4 shadow">
             <div id="reader" class="w-full"></div>
         </div>
 
         <div class="mt-4 flex justify-between text-sm">
             <span class="text-gray-500">Scanned this session: <b id="count">0</b></span>
-            <a href="{{ route('events.attendees', $event) }}" class="text-maroon-700 font-semibold">View attendees
+            <a href="{{ route('events.attendees', $event) }}" class="font-semibold text-maroon-700">View attendees
                 &rarr;</a>
         </div>
     </div>

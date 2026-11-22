@@ -5,7 +5,8 @@
             @if (in_array(auth()->user()->role, ['admin', 'organizer']))
                 <div class="flex items-center gap-4">
                     <a href="{{ route('events.archived') }}" class="text-sm text-gray-600">Archived</a>
-                    <a href="{{ route('events.create') }}" class="rounded-md bg-maroon-700 px-4 py-2 text-sm text-white">New
+                    <a href="{{ route('events.create') }}"
+                        class="rounded-md bg-maroon-700 px-4 py-2 text-sm text-white">New
                         Event</a>
                 </div>
             @endif

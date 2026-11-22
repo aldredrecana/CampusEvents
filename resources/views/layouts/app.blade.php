@@ -15,13 +15,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased text-gray-900">
-    <div class="min-h-screen flex flex-col bg-maroon-50/40">
+<body class="font-sans text-gray-900 antialiased">
+    <div class="flex min-h-screen flex-col bg-maroon-50/40">
         @include('layouts.navigation')
 
         @isset($header)
-            <header class="bg-white shadow-sm border-b border-maroon-100">
-                <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8 text-maroon-800">
+            <header class="border-b border-maroon-100 bg-white shadow-sm">
+                <div class="mx-auto max-w-7xl px-4 py-5 text-maroon-800 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
             </header>
@@ -31,8 +31,8 @@
             {{ $slot }}
         </main>
 
-        <footer class="bg-maroon-900 text-maroon-100 text-xs">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between gap-1">
+        <footer class="bg-maroon-900 text-xs text-maroon-100">
+            <div class="mx-auto flex max-w-7xl flex-col justify-between gap-1 px-4 py-4 sm:flex-row sm:px-6 lg:px-8">
                 <span>Polytechnic University of the Philippines &middot; Calauan Campus</span>
                 <span class="text-gold-300">CampusEvents Attendance Monitoring System</span>
             </div>
