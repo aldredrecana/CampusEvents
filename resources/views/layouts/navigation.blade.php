@@ -9,7 +9,8 @@
         $links[] = ['My Attendance', 'my-attendance', 'my-attendance'];
     }
     if ($user->role === 'admin') {
-        $links[] = ['Users', 'admin.users.index', 'admin.*'];
+        $links[] = ['Users', 'admin.users.index', 'admin.users.*'];
+        $links[] = ['Masterlist', 'admin.masterlist.index', 'admin.masterlist.*'];
     }
 @endphp
 
