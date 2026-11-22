@@ -28,13 +28,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Students
     Route::get('/my-qr', fn () => view('my-qr'))->name('my-qr');
-    Route::get('/my-qr/code', [AttendanceController::class, 'myCode'])->name('my-qr.code');
+    Route::get('/my-qr/code', [AttendanceController::class, 'myCode'])->middleware('throttle:20,1')->name('my-qr.code');
     Route::get('/my-attendance', [AttendanceController::class, 'history'])->name('my-attendance');
 
     // Scanning: the controller allows admin, the event's organizer, or assigned staff
     Route::get('/events/{event}/scan', [AttendanceController::class, 'scan'])->name('events.scan');
-    Route::post('/events/{event}/scan', [AttendanceController::class, 'store'])->name('events.scan.store');
-    Route::post('/events/{event}/manual', [AttendanceController::class, 'manual'])->name('events.manual');
+    Route::post('/events/{event}/scan', [AttendanceController::class, 'store'])->middleware('throttle:120,1')->name('events.scan.store');
+    Route::post('/events/{event}/manual', [AttendanceController::class, 'manual'])->middleware('throttle:60,1')->name('events.manual');
     Route::get('/events/{event}/attendees', [AttendanceController::class, 'attendees'])->name('events.attendees');
     Route::delete('/events/{event}/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('events.attendances.destroy');
 

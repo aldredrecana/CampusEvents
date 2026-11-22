@@ -2,15 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
+use App\Http\Requests\EventRequest;
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EventController extends Controller
 {
     public function index(Request $request)
     {
-        $events = Event::visibleTo($request->user())
-            ->with('creator')
+        $user = $request->user();
+
+        $events = Event::visibleTo($user)
+            ->with([
+                'creator',
+                // Load only this user's staff assignment, so the Scan button check needs no extra query per event
+                'staff' => fn ($q) => $q->where('users.id', $user->id),
+            ])
             ->orderBy('starts_at', 'desc')
             ->paginate(10);
 
@@ -22,9 +31,9 @@ class EventController extends Controller
         return view('events.create');
     }
 
-    public function store(Request $request)
+    public function store(EventRequest $request)
     {
-        $data = $this->validated($request);
+        $data = $request->eventData();
         $data['created_by'] = $request->user()->id;
 
         Event::create($data);
@@ -32,62 +41,27 @@ class EventController extends Controller
         return redirect()->route('events.index')->with('success', 'Event created.');
     }
 
-    public function edit(Request $request, Event $event)
+    public function edit(Event $event)
     {
-        $this->authorizeOwner($request, $event);
+        Gate::authorize('manage', $event);
 
         return view('events.edit', compact('event'));
     }
 
-    public function update(Request $request, Event $event)
+    // EventRequest already checked that this user can manage the event
+    public function update(EventRequest $request, Event $event)
     {
-        $this->authorizeOwner($request, $event);
-        $event->update($this->validated($request));
+        $event->update($request->eventData());
 
         return redirect()->route('events.index')->with('success', 'Event updated.');
     }
 
-    public function destroy(Request $request, Event $event)
+    public function destroy(Event $event)
     {
-        $this->authorizeOwner($request, $event);
+        Gate::authorize('manage', $event);
         $event->delete();
 
         return redirect()->route('events.index')->with('success', 'Event archived.');
-    }
-
-    private function validated(Request $request): array
-    {
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'venue' => ['required', 'string', 'max:255'],
-            'starts_at' => ['required', 'date'],
-            'ends_at' => ['required', 'date', 'after:starts_at'],
-            'target_courses' => ['nullable', 'array'],
-            'target_courses.*' => ['in:'.implode(',', config('campus.courses'))],
-            'target_year_levels' => ['nullable', 'array'],
-            'target_year_levels.*' => ['integer', 'between:1,6'],
-            'target_sections' => ['nullable', 'string', 'max:255'],
-            'grace_minutes' => ['required', 'integer', 'min:0', 'max:240'],
-        ]);
-
-        $data['target_courses'] = $data['target_courses'] ?? [];
-        $data['target_year_levels'] = array_map('intval', $data['target_year_levels'] ?? []);
-        $data['target_sections'] = collect(explode(',', $data['target_sections'] ?? ''))
-            ->map(fn ($s) => strtoupper(trim($s)))
-            ->filter()
-            ->values()
-            ->all();
-        $data['requires_checkout'] = $request->boolean('requires_checkout');
-
-        return $data;
-    }
-
-    private function authorizeOwner(Request $request, Event $event): void
-    {
-        if (! $event->canBeManagedBy($request->user())) {
-            abort(403);
-        }
     }
 
     public function archived(Request $request)
@@ -95,16 +69,16 @@ class EventController extends Controller
         $user = $request->user();
 
         $events = Event::onlyTrashed()
-            ->when($user->role !== 'admin', fn ($q) => $q->where('created_by', $user->id))
+            ->when($user->role !== Role::Admin->value, fn ($q) => $q->where('created_by', $user->id))
             ->orderBy('deleted_at', 'desc')
             ->paginate(10);
 
         return view('events.archived', compact('events'));
     }
 
-    public function restore(Request $request, Event $event)
+    public function restore(Event $event)
     {
-        $this->authorizeOwner($request, $event);
+        Gate::authorize('manage', $event);
         $event->restore();
 
         return redirect()->route('events.index')->with('success', 'Event restored.');
