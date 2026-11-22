@@ -10,19 +10,19 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('event_staff', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('event_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-        $table->timestamps();
+    {
+        Schema::create('event_staff', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
 
-        $table->unique(['event_id', 'user_id']);
-    });
-}
+            $table->unique(['event_id', 'user_id']);
+        });
+    }
 
-public function down(): void
-{
-    Schema::dropIfExists('event_staff');
-}
+    public function down(): void
+    {
+        Schema::dropIfExists('event_staff');
+    }
 };

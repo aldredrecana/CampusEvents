@@ -31,7 +31,7 @@ class ReportController extends Controller
             }
         }
 
-        $filename = Str::slug($event->title) . '-attendance.csv';
+        $filename = Str::slug($event->title).'-attendance.csv';
 
         return response()->streamDownload(function () use ($rows, $event) {
             $out = fopen('php://output', 'w');
@@ -39,7 +39,7 @@ class ReportController extends Controller
 
             fputcsv($out, ['Event', $this->safe($event->title)]);
             fputcsv($out, ['Venue', $this->safe($event->venue)]);
-            fputcsv($out, ['Schedule', $event->starts_at->format('M d, Y h:i A') . ' to ' . $event->ends_at->format('M d, Y h:i A')]);
+            fputcsv($out, ['Schedule', $event->starts_at->format('M d, Y h:i A').' to '.$event->ends_at->format('M d, Y h:i A')]);
             fputcsv($out, []);
             fputcsv($out, ['Student No.', 'Name', 'Course', 'Year', 'Section', 'Status', 'Check-in', 'Check-out', 'Source', 'Scanned by', 'Note']);
 
@@ -76,6 +76,6 @@ class ReportController extends Controller
     {
         $value = (string) $value;
 
-        return preg_match('/^[=+\-@\t\r]/', $value) ? "'" . $value : $value;
+        return preg_match('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
     }
 }

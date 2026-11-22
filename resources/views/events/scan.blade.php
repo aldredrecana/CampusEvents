@@ -1,23 +1,57 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Scan: {{ $event->title }}</h2>
+        <h2 class="text-xl font-semibold">Scan: {{ $event->title }}</h2>
+        <p class="text-sm text-gray-500">{{ $event->venue }} &middot; {{ $event->starts_at->format('M d, h:i A') }} -
+            {{ $event->ends_at->format('h:i A') }}</p>
     </x-slot>
-    <div class="py-8 max-w-xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white p-6 shadow sm:rounded-lg">
-            <div id="reader" class="w-full"></div>
-            <div id="result" class="mt-4 p-3 rounded hidden"></div>
-        </div>
-        <a href="{{ route('events.attendees', $event) }}" class="inline-block mt-4 text-indigo-600">View attendees</a>
-    </div>
+    <div class="mx-auto max-w-xl px-4 py-6 sm:px-6 lg:px-8">
+        @unless ($event->isScanOpen())
+            <div class="mb-4 rounded bg-gold-100 p-3 text-sm text-maroon-900">
+                Scanning opens at {{ $event->opensAt()->format('M d, h:i A') }} and closes at
+                {{ $event->ends_at->format('h:i A') }}.
+            </div>
+        @endunless
 
+        {{-- Big result banner so staff can read it from arm's length --}}
+        <div id="result" class="mb-4 rounded-lg bg-gray-100 p-4 text-center text-lg font-semibold text-gray-600">
+            Point the camera at a student's QR code
+        </div>
+
+        <div class="rounded-lg bg-white p-4 shadow">
+            <div id="reader" class="w-full"></div>
+        </div>
+
+        <div class="mt-4 flex justify-between text-sm">
+            <span class="text-gray-500">Scanned this session: <b id="count">0</b></span>
+            <a href="{{ route('events.attendees', $event) }}" class="font-semibold text-maroon-700">View attendees
+                &rarr;</a>
+        </div>
+    </div>
 
     <script>
         const box = document.getElementById('result');
+        const counter = document.getElementById('count');
         let busy = false;
+        let scanned = 0;
+
+        // Short beep: high tone = success, low tone = error
+        function beep(ok) {
+            try {
+                const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.frequency.value = ok ? 880 : 220;
+                osc.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + (ok ? 0.15 : 0.4));
+            } catch (e) {}
+        }
 
         function show(msg, ok) {
             box.textContent = msg;
-            box.className = 'mt-4 p-3 rounded ' + (ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
+            box.className = 'mb-4 p-4 rounded-lg text-center text-lg font-semibold ' +
+                (ok ? 'bg-green-600 text-white' : 'bg-red-600 text-white');
+            beep(ok);
+            navigator.vibrate?.(ok ? 100 : [100, 80, 100]);
         }
 
         async function onScan(token) {
@@ -36,11 +70,12 @@
                     }),
                 });
                 const data = await res.json();
+                if (res.ok) counter.textContent = ++scanned;
                 show(data.message ?? 'Something went wrong.', res.ok);
             } catch (e) {
                 show('Network error. Try again.', false);
             }
-            setTimeout(() => (busy = false), 3000);
+            setTimeout(() => (busy = false), 2000);
         }
 
         document.addEventListener('DOMContentLoaded', () => {

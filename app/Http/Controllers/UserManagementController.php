@@ -15,11 +15,11 @@ class UserManagementController extends Controller
 
         $users = User::query()
             ->when($search !== '', function ($query) use ($search) {
-                $like = '%' . $search . '%';
+                $like = '%'.$search.'%';
                 $query->where(function ($q) use ($like) {
                     $q->where('name', 'ilike', $like)
-                      ->orWhere('email', 'ilike', $like)
-                      ->orWhere('student_number', 'ilike', $like);
+                        ->orWhere('email', 'ilike', $like)
+                        ->orWhere('student_number', 'ilike', $like);
                 });
             })
             ->orderBy('name')

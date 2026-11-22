@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Event extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'title', 'description', 'venue', 'starts_at', 'ends_at', 'created_by',
         'target_courses', 'target_year_levels', 'target_sections',
@@ -66,54 +67,54 @@ class Event extends Model
     }
 
     public function staff()
-{
-    return $this->belongsToMany(User::class, 'event_staff')->withTimestamps();
-}
+    {
+        return $this->belongsToMany(User::class, 'event_staff')->withTimestamps();
+    }
 
-public function canBeManagedBy(User $user): bool
-{
-    return $user->role === 'admin'
-        || ($user->role === 'organizer' && $this->created_by === $user->id);
-}
+    public function canBeManagedBy(User $user): bool
+    {
+        return $user->role === 'admin'
+            || ($user->role === 'organizer' && $this->created_by === $user->id);
+    }
 
-public function canBeScannedBy(User $user): bool
-{
-    return $this->canBeManagedBy($user)
-        || $this->staff()->where('users.id', $user->id)->exists();
-}
+    public function canBeScannedBy(User $user): bool
+    {
+        return $this->canBeManagedBy($user)
+            || $this->staff()->where('users.id', $user->id)->exists();
+    }
 
     // Everyone expected at this event (used for absent lists in Phase 4)
     public function eligibleStudents()
-{
-    return User::where('role', 'student')
-        ->where('created_at', '<=', $this->ends_at)
-        ->when($this->target_courses, fn ($q, $v) => $q->whereIn('course', $v))
-        ->when($this->target_year_levels, fn ($q, $v) => $q->whereIn('year_level', $v))
-        ->when($this->target_sections, fn ($q, $v) => $q->whereIn('section', $v));
-}
+    {
+        return User::where('role', 'student')
+            ->where('created_at', '<=', $this->ends_at)
+            ->when($this->target_courses, fn ($q, $v) => $q->whereIn('course', $v))
+            ->when($this->target_year_levels, fn ($q, $v) => $q->whereIn('year_level', $v))
+            ->when($this->target_sections, fn ($q, $v) => $q->whereIn('section', $v));
+    }
 
     public function scopeVisibleTo($query, User $user)
-{
-    if ($user->role !== 'student') {
+    {
+        if ($user->role !== 'student') {
+            return $query;
+        }
+
+        $fields = [
+            'target_courses' => $user->course,
+            'target_year_levels' => $user->year_level,
+            'target_sections' => $user->section,
+        ];
+
+        foreach ($fields as $column => $value) {
+            $query->where(function ($q) use ($column, $value) {
+                $q->whereNull($column)->orWhereJsonLength($column, 0);
+
+                if ($value !== null) {
+                    $q->orWhereJsonContains($column, $value);
+                }
+            });
+        }
+
         return $query;
     }
-
-    $fields = [
-        'target_courses' => $user->course,
-        'target_year_levels' => $user->year_level,
-        'target_sections' => $user->section,
-    ];
-
-    foreach ($fields as $column => $value) {
-        $query->where(function ($q) use ($column, $value) {
-            $q->whereNull($column)->orWhereJsonLength($column, 0);
-
-            if ($value !== null) {
-                $q->orWhereJsonContains($column, $value);
-            }
-        });
-    }
-
-    return $query;
-}
 }

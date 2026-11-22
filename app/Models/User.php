@@ -4,13 +4,13 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 #[Fillable(['name', 'email', 'password', 'student_number', 'course', 'year_level', 'section'])]
 #[Hidden(['password', 'remember_token'])]
@@ -34,19 +34,24 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     public function attendances()
-{
-    return $this->hasMany(Attendance::class);
-}
+    {
+        return $this->hasMany(Attendance::class);
+    }
 
-public function createdEvents()
-{
-    return $this->hasMany(Event::class, 'created_by');
-}
+    public function staffEvents()
+    {
+        return $this->belongsToMany(Event::class, 'event_staff')->withTimestamps();
+    }
 
-protected static function booted(): void
-{
-    static::creating(function ($user) {
-        $user->qr_token = (string) Str::uuid();
-    });
-}
+    public function createdEvents()
+    {
+        return $this->hasMany(Event::class, 'created_by');
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function ($user) {
+            $user->qr_token = (string) Str::uuid();
+        });
+    }
 }

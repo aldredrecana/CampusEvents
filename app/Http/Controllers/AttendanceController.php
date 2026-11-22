@@ -48,7 +48,7 @@ class AttendanceController extends Controller
         }
 
         // One-time use: a code that was already scanned is rejected
-        if (! Cache::add('qr_used:' . $data['nonce'], true, 180)) {
+        if (! Cache::add('qr_used:'.$data['nonce'], true, config('campus.qr_ttl_seconds') + 60)) {
             return response()->json(['message' => 'This code was already used.'], 422);
         }
 
@@ -86,32 +86,32 @@ class AttendanceController extends Controller
     }
 
     public function attendees(Request $request, Event $event)
-{
-    $this->authorizeOwner($request, $event);
+    {
+        $this->authorizeOwner($request, $event);
 
-    $attendances = $event->attendances()
-        ->with(['user', 'scanner'])
-        ->whereNotNull('checked_in_at')
-        ->orderBy('checked_in_at')
-        ->get();
+        $attendances = $event->attendances()
+            ->with(['user', 'scanner'])
+            ->whereNotNull('checked_in_at')
+            ->orderBy('checked_in_at')
+            ->get();
 
-    $absentees = $event->eligibleStudents()
-        ->whereNotIn('id', $attendances->pluck('user_id'))
-        ->orderBy('section')
-        ->orderBy('name')
-        ->get();
+        $absentees = $event->eligibleStudents()
+            ->whereNotIn('id', $attendances->pluck('user_id'))
+            ->orderBy('section')
+            ->orderBy('name')
+            ->get();
 
-    $expected = $event->eligibleStudents()->count();
-    $present = $attendances->where('status', 'present')->count();
-    $late = $attendances->where('status', 'late')->count();
-    $absent = $absentees->count();
+        $expected = $event->eligibleStudents()->count();
+        $present = $attendances->where('status', 'present')->count();
+        $late = $attendances->where('status', 'late')->count();
+        $absent = $absentees->count();
 
-    return view('events.attendees', compact('event', 'attendances', 'absentees', 'expected', 'present', 'late', 'absent'));
-}
+        return view('events.attendees', compact('event', 'attendances', 'absentees', 'expected', 'present', 'late', 'absent'));
+    }
 
     private function record(Event $event, User $student, User $scanner, string $source, ?string $note = null): string
     {
-        $attendance = Attendance::firstOrCreate([
+        $attendance = Attendance::createOrFirst([
             'event_id' => $event->id,
             'user_id' => $student->id,
         ]);
@@ -127,7 +127,7 @@ class AttendanceController extends Controller
                 'note' => $note,
             ]);
 
-            return "{$student->name} checked in" . ($isLate ? ' (late).' : '.');
+            return "{$student->name} checked in".($isLate ? ' (late).' : '.');
         }
 
         if (! $event->requires_checkout) {
@@ -150,33 +150,34 @@ class AttendanceController extends Controller
     }
 
     private function authorizeOwner(Request $request, Event $event): void
-{
-    if (! $event->canBeScannedBy($request->user())) {
-        abort(403);
+    {
+        if (! $event->canBeScannedBy($request->user())) {
+            abort(403);
+        }
     }
-}
+
     public function history(Request $request)
-{
-    $user = $request->user();
-    abort_unless($user->role === 'student', 403);
+    {
+        $user = $request->user();
+        abort_unless($user->role === 'student', 403);
 
-    $attended = $user->attendances()
-        ->whereNotNull('checked_in_at')
-        ->with(['event' => fn ($q) => $q->withTrashed()])
-        ->orderByDesc('checked_in_at')
-        ->get()
-        ->filter(fn ($a) => $a->event);
+        $attended = $user->attendances()
+            ->whereNotNull('checked_in_at')
+            ->with(['event' => fn ($q) => $q->withTrashed()])
+            ->orderByDesc('checked_in_at')
+            ->get()
+            ->filter(fn ($a) => $a->event);
 
-    $missed = Event::visibleTo($user)
-        ->where('ends_at', '<', now())
-        ->where('ends_at', '>', $user->created_at)
-        ->whereNotIn('id', $attended->pluck('event_id'))
-        ->orderByDesc('ends_at')
-        ->get();
+        $missed = Event::visibleTo($user)
+            ->where('ends_at', '<', now())
+            ->where('ends_at', '>', $user->created_at)
+            ->whereNotIn('id', $attended->pluck('event_id'))
+            ->orderByDesc('ends_at')
+            ->get();
 
-    $present = $attended->where('status', 'present')->count();
-    $late = $attended->where('status', 'late')->count();
+        $present = $attended->where('status', 'present')->count();
+        $late = $attended->where('status', 'late')->count();
 
-    return view('my-attendance', compact('attended', 'missed', 'present', 'late'));
-}
+        return view('my-attendance', compact('attended', 'missed', 'present', 'late'));
+    }
 }

@@ -1,0 +1,16 @@
+{
+    "plugins": ["@shufo/prettier-plugin-blade"],
+    "printWidth": 120,
+    "tabWidth": 4,
+    "singleQuote": true,
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": ["*.blade.php"],
+            "options": {
+                "parser": "blade",
+                "sortTailwindcssClasses": true
+            }
+        }
+    ]
+}

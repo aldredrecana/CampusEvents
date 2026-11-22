@@ -1,58 +1,248 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CampusEvents
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**QR-based attendance monitoring for school events at PUP Calauan Campus.**
 
-## About Laravel
+CampusEvents replaces paper attendance sheets at seminars, assemblies, and org activities. Students show a personal QR code at the entrance, staff scan it with a phone or webcam, and the system records who was present, who was late, and who was absent.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> System Integration project · BSIT 3rd Year · Polytechnic University of the Philippines, Calauan Campus
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Team
 
-## Learning Laravel
+| Member | Role in the project                   |
+| ------ | ------------------------------------- |
+| _Name_ | _e.g. Backend, scanning & attendance_ |
+| _Name_ | _e.g. Reports & database_             |
+| _Name_ | _e.g. UI/UX & front-end_              |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Features
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### Students
 
-## Agentic Development
+- Register with student number, course, year level, and section
+- **My QR**: a personal code that changes every 30 seconds and works only once (screenshots can't be shared)
+- **My Attendance**: on-time, late, and missed events
+- Dashboard with upcoming events
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Organizers
 
-```bash
-composer require laravel/boost --dev
+- Create, edit, and archive events (venue, schedule, grace period, optional check-out)
+- Choose the audience: specific courses, year levels, or sections
+- Assign gate staff for each event
+- Live attendees page: expected, present, late, and absent counts
+- Manual check-in by student number, with a required reason that is logged
+- CSV export for Excel (handles names like "Peña" and blocks spreadsheet formula tricks)
 
-php artisan boost:install
+### Gate staff
+
+- Assigned to one event; can only scan and view attendance for it
+- Scanner shows a large green/red result with a beep and vibration
+
+### Admins
+
+- Everything organizers can do, for all events
+- Manage users and change roles
+
+---
+
+## Tech stack
+
+| Layer           | Technology                                                             |
+| --------------- | ---------------------------------------------------------------------- |
+| Backend         | Laravel (PHP), Laravel Breeze for login, role middleware               |
+| Database        | Supabase PostgreSQL (SQLite for local demo and tests)                  |
+| Front-end       | Blade, Tailwind CSS (PUP maroon & gold theme), Alpine.js               |
+| QR              | `qrcode` (generator) and `html5-qrcode` (scanner), both in the browser |
+| Quality         | PHPUnit tests, Laravel Pint and Prettier formatters                    |
+| Version control | Git and GitHub (feature branches + pull requests)                      |
+
+---
+
+## System architecture
+
+```mermaid
+flowchart LR
+    S[Student phone<br/>My QR page] -- "fetch signed token<br/>every 30s" --> L
+    G[Gate staff phone or webcam<br/>Scanner page] -- "POST scanned token" --> L
+    O[Organizer / Admin<br/>browser] -- "manage events,<br/>view reports" --> L
+
+    subgraph L[Laravel application]
+        A[Auth & roles<br/>Breeze + RoleMiddleware]
+        Q[QrToken<br/>sign & verify]
+        C[Controllers<br/>Events, Attendance, Reports]
+    end
+
+    L <-- "SQL over SSL" --> DB[(Supabase<br/>PostgreSQL)]
+    L -- "CSV with UTF-8 BOM" --> X[Excel / Google Sheets]
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### How one check-in works
 
-## Contributing
+```mermaid
+sequenceDiagram
+    participant St as Student (My QR)
+    participant Sc as Staff (Scanner)
+    participant App as Laravel
+    participant DB as Supabase
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    St->>App: GET /my-qr/code
+    App-->>St: signed token (user id + expiry + random nonce)
+    Sc->>App: POST /events/{id}/scan with token
+    App->>App: verify signature and expiry
+    App->>DB: is scanning open? is student in the audience?
+    App->>DB: was this nonce already used? (one-time use)
+    App->>DB: save attendance (present or late, scanned_by, time)
+    App-->>Sc: "Juan Dela Cruz checked in."
+```
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Database (ERD)
 
-## Security Vulnerabilities
+```mermaid
+erDiagram
+    USERS ||--o{ EVENTS : "creates"
+    USERS ||--o{ ATTENDANCES : "attends"
+    EVENTS ||--o{ ATTENDANCES : "has"
+    USERS ||--o{ ATTENDANCES : "scans (scanned_by)"
+    EVENTS ||--o{ EVENT_STAFF : "has gate staff"
+    USERS ||--o{ EVENT_STAFF : "assigned as staff"
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    USERS {
+        bigint id PK
+        string name
+        string email UK
+        string password
+        string role "student | organizer | admin"
+        string student_number UK
+        string course
+        int year_level
+        string section
+        string qr_token UK
+        datetime email_verified_at
+    }
 
-## License
+    EVENTS {
+        bigint id PK
+        string title
+        text description
+        string venue
+        datetime starts_at
+        datetime ends_at
+        bigint created_by FK
+        json target_courses
+        json target_year_levels
+        json target_sections
+        boolean requires_checkout
+        int grace_minutes
+        datetime deleted_at "archived"
+    }
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    ATTENDANCES {
+        bigint id PK
+        bigint event_id FK
+        bigint user_id FK
+        datetime checked_in_at
+        datetime checked_out_at
+        string status "present | late"
+        bigint scanned_by FK
+        string source "qr | manual"
+        text note
+    }
+
+    EVENT_STAFF {
+        bigint id PK
+        bigint event_id FK
+        bigint user_id FK
+    }
+```
+
+`attendances` has a unique index on `(event_id, user_id)`, so a student can only have one record per event. Events are archived (soft deleted) instead of deleted, so attendance records are never lost.
+
+---
+
+## Setup (Windows, PowerShell)
+
+Requirements: PHP 8.3+, Composer, Node.js 20+, Git.
+
+```powershell
+git clone https://github.com/aldredrecana/CampusEvents.git
+cd CampusEvents
+composer install
+npm install
+Copy-Item .env.example .env
+php artisan key:generate
+```
+
+Open `.env` and fill in the Supabase connection (ask a team member privately for the password; it is never committed):
+
+```
+DB_CONNECTION=pgsql
+DB_HOST=aws-0-ap-northeast-1.pooler.supabase.com
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_USERNAME=postgres.<project-ref>
+DB_PASSWORD=<ask the team>
+APP_TIMEZONE=Asia/Manila
+QR_TTL_SECONDS=45
+```
+
+Then:
+
+```powershell
+php artisan migrate
+php artisan db:seed      # optional: demo accounts and events
+npm run dev              # terminal 1
+php artisan serve        # terminal 2
+```
+
+Open http://localhost:8000
+
+### Demo accounts (after `db:seed`)
+
+| Role                      | Email               | Password |
+| ------------------------- | ------------------- | -------- |
+| Admin                     | admin@demo.test     | password |
+| Organizer                 | organizer@demo.test | password |
+| Student (also gate staff) | student1@demo.test  | password |
+
+---
+
+## Offline demo mode (no Supabase needed)
+
+Use this if the internet or Supabase is down during a presentation. It uses a local SQLite file and does not touch the real database.
+
+```powershell
+New-Item database\database.sqlite -ItemType File -Force
+php artisan migrate:fresh --seed --env=demo --force
+php artisan serve --env=demo
+```
+
+`--env=demo` makes Laravel read `.env.demo` instead of `.env`.
+
+---
+
+## Tests and formatting
+
+```powershell
+php artisan test          # all tests
+npm run format            # format PHP (Pint) + Blade/JS/CSS (Prettier)
+npm run format:check      # check only
+```
+
+## Team workflow
+
+1. Never push directly to `main`.
+2. Create a branch: `git checkout -b feature/short-name`
+3. Run `npm run format` and `php artisan test` before committing.
+4. Push the branch and open a Pull Request. Another member reviews before merging.
+
+---
+
+## Future integration
+
+- Import the official student masterlist from the registrar (CSV)
+- REST API so other school systems can read event attendance
