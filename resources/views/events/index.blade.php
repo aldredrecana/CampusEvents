@@ -1,23 +1,23 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800">Events</h2>
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold text-gray-800">Events</h2>
             @if (in_array(auth()->user()->role, ['admin', 'organizer']))
                 <div class="flex items-center gap-4">
                     <a href="{{ route('events.archived') }}" class="text-sm text-gray-600">Archived</a>
-                    <a href="{{ route('events.create') }}" class="px-4 py-2 bg-gray-800 text-white rounded-md text-sm">New
+                    <a href="{{ route('events.create') }}" class="rounded-md bg-maroon-700 px-4 py-2 text-sm text-white">New
                         Event</a>
                 </div>
             @endif
         </div>
     </x-slot>
 
-    <div class="py-8 max-w-5xl mx-auto sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-5xl py-8 sm:px-6 lg:px-8">
         @if (session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+            <div class="mb-4 rounded bg-green-100 p-3 text-green-800">{{ session('success') }}</div>
         @endif
 
-        <div class="bg-white shadow sm:rounded-lg overflow-x-auto">
+        <div class="overflow-x-auto bg-white shadow sm:rounded-lg">
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-left">
                     <tr>
@@ -35,7 +35,7 @@
                             <td class="p-3">{{ $event->venue }}</td>
                             <td class="p-3">{{ $event->starts_at->format('M d, Y h:i A') }}</td>
                             <td class="p-3">{{ $event->ends_at->format('M d, Y h:i A') }}</td>
-                            <td class="p-3 flex gap-3">
+                            <td class="flex gap-3 p-3">
                                 @if ($event->canBeScannedBy(auth()->user()))
                                     <a href="{{ route('events.scan', $event) }}" class="text-green-600">Scan</a>
                                     <a href="{{ route('events.attendees', $event) }}"
@@ -43,7 +43,7 @@
                                 @endif
                                 @if ($event->canBeManagedBy(auth()->user()))
                                     <a href="{{ route('events.staff', $event) }}" class="text-blue-600">Staff</a>
-                                    <a href="{{ route('events.edit', $event) }}" class="text-indigo-600">Edit</a>
+                                    <a href="{{ route('events.edit', $event) }}" class="text-maroon-600">Edit</a>
                                     <form method="POST" action="{{ route('events.destroy', $event) }}"
                                         onsubmit="return confirm('Archive this event? Attendance records are kept.')">
                                         @csrf @method('DELETE')

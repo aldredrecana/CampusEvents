@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">My Attendance</h2>
+        <h2 class="text-xl font-semibold text-gray-800">My Attendance</h2>
     </x-slot>
-    <div class="py-8 max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-4xl py-8 sm:px-6 lg:px-8">
 
-        <div class="grid grid-cols-3 gap-3 mb-4 text-center">
+        <div class="mb-4 grid grid-cols-3 gap-3 text-center">
             <div class="bg-white p-3 shadow sm:rounded-lg">
                 <div class="text-2xl font-bold text-green-700">{{ $present }}</div>
                 <div class="text-xs text-gray-500">On time</div>
@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <div class="bg-white shadow sm:rounded-lg overflow-x-auto mb-6">
+        <div class="mb-6 overflow-x-auto bg-white shadow sm:rounded-lg">
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-left">
                     <tr>
@@ -37,7 +37,7 @@
                             <td class="p-3">{{ $a->checked_in_at->format('h:i A') }}</td>
                             <td class="p-3">
                                 <span
-                                    class="px-2 py-1 rounded text-xs {{ $a->status === 'late' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
+                                    class="{{ $a->status === 'late' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }} rounded px-2 py-1 text-xs">
                                     {{ ucfirst($a->status) }}
                                 </span>
                             </td>
@@ -52,8 +52,8 @@
         </div>
 
         @if ($missed->isNotEmpty())
-            <h3 class="font-semibold mb-2">Missed events</h3>
-            <div class="bg-white shadow sm:rounded-lg overflow-x-auto">
+            <h3 class="mb-2 font-semibold">Missed events</h3>
+            <div class="overflow-x-auto bg-white shadow sm:rounded-lg">
                 <table class="min-w-full text-sm">
                     <tbody>
                         @foreach ($missed as $e)

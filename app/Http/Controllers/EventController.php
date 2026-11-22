@@ -8,14 +8,14 @@ use Illuminate\Http\Request;
 class EventController extends Controller
 {
     public function index(Request $request)
-{
-    $events = Event::visibleTo($request->user())
-        ->with('creator')
-        ->orderBy('starts_at', 'desc')
-        ->paginate(10);
+    {
+        $events = Event::visibleTo($request->user())
+            ->with('creator')
+            ->orderBy('starts_at', 'desc')
+            ->paginate(10);
 
-    return view('events.index', compact('events'));
-}
+        return view('events.index', compact('events'));
+    }
 
     public function create()
     {
@@ -56,57 +56,57 @@ class EventController extends Controller
     }
 
     private function validated(Request $request): array
-{
-    $data = $request->validate([
-        'title' => ['required', 'string', 'max:255'],
-        'description' => ['nullable', 'string'],
-        'venue' => ['required', 'string', 'max:255'],
-        'starts_at' => ['required', 'date'],
-        'ends_at' => ['required', 'date', 'after:starts_at'],
-        'target_courses' => ['nullable', 'array'],
-        'target_courses.*' => ['in:' . implode(',', config('campus.courses'))],
-        'target_year_levels' => ['nullable', 'array'],
-        'target_year_levels.*' => ['integer', 'between:1,6'],
-        'target_sections' => ['nullable', 'string', 'max:255'],
-        'grace_minutes' => ['required', 'integer', 'min:0', 'max:240'],
-    ]);
+    {
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'venue' => ['required', 'string', 'max:255'],
+            'starts_at' => ['required', 'date'],
+            'ends_at' => ['required', 'date', 'after:starts_at'],
+            'target_courses' => ['nullable', 'array'],
+            'target_courses.*' => ['in:'.implode(',', config('campus.courses'))],
+            'target_year_levels' => ['nullable', 'array'],
+            'target_year_levels.*' => ['integer', 'between:1,6'],
+            'target_sections' => ['nullable', 'string', 'max:255'],
+            'grace_minutes' => ['required', 'integer', 'min:0', 'max:240'],
+        ]);
 
-    $data['target_courses'] = $data['target_courses'] ?? [];
-    $data['target_year_levels'] = array_map('intval', $data['target_year_levels'] ?? []);
-    $data['target_sections'] = collect(explode(',', $data['target_sections'] ?? ''))
-        ->map(fn ($s) => strtoupper(trim($s)))
-        ->filter()
-        ->values()
-        ->all();
-    $data['requires_checkout'] = $request->boolean('requires_checkout');
+        $data['target_courses'] = $data['target_courses'] ?? [];
+        $data['target_year_levels'] = array_map('intval', $data['target_year_levels'] ?? []);
+        $data['target_sections'] = collect(explode(',', $data['target_sections'] ?? ''))
+            ->map(fn ($s) => strtoupper(trim($s)))
+            ->filter()
+            ->values()
+            ->all();
+        $data['requires_checkout'] = $request->boolean('requires_checkout');
 
-    return $data;
-}
+        return $data;
+    }
 
     private function authorizeOwner(Request $request, Event $event): void
-{
-    if (! $event->canBeScannedBy($request->user())) {
-        abort(403);
+    {
+        if (! $event->canBeManagedBy($request->user())) {
+            abort(403);
+        }
     }
-}
 
-public function archived(Request $request)
-{
-    $user = $request->user();
+    public function archived(Request $request)
+    {
+        $user = $request->user();
 
-    $events = Event::onlyTrashed()
-        ->when($user->role !== 'admin', fn ($q) => $q->where('created_by', $user->id))
-        ->orderBy('deleted_at', 'desc')
-        ->paginate(10);
+        $events = Event::onlyTrashed()
+            ->when($user->role !== 'admin', fn ($q) => $q->where('created_by', $user->id))
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(10);
 
-    return view('events.archived', compact('events'));
-}
+        return view('events.archived', compact('events'));
+    }
 
-public function restore(Request $request, Event $event)
-{
-    $this->authorizeOwner($request, $event);
-    $event->restore();
+    public function restore(Request $request, Event $event)
+    {
+        $this->authorizeOwner($request, $event);
+        $event->restore();
 
-    return redirect()->route('events.index')->with('success', 'Event restored.');
-}
+        return redirect()->route('events.index')->with('success', 'Event restored.');
+    }
 }

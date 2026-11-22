@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-          Schema::table('users', function (Blueprint $table) {
-        $table->string('student_number')->nullable()->unique();
-        $table->string('course')->nullable();
-        $table->unsignedTinyInteger('year_level')->nullable();
-        $table->string('section')->nullable();
-    });
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('student_number')->nullable()->unique();
+            $table->string('course')->nullable();
+            $table->unsignedTinyInteger('year_level')->nullable();
+            $table->string('section')->nullable();
+        });
     }
 
     /**
@@ -24,8 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-       Schema::table('users', function (Blueprint $table) {
-        $table->dropColumn(['student_number', 'course', 'year_level', 'section']);
-    });
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['student_number', 'course', 'year_level', 'section']);
+        });
     }
 };

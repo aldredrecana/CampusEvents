@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('attendances', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('event_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-        $table->dateTime('checked_in_at')->nullable();
-        $table->dateTime('checked_out_at')->nullable();
-        $table->timestamps();
+            $table->id();
+            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->dateTime('checked_in_at')->nullable();
+            $table->dateTime('checked_out_at')->nullable();
+            $table->timestamps();
 
-        $table->unique(['event_id', 'user_id']);
-    });
+            $table->unique(['event_id', 'user_id']);
+        });
     }
 
     /**

@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Archived Events</h2>
+        <h2 class="text-xl font-semibold text-gray-800">Archived Events</h2>
     </x-slot>
-    <div class="py-8 max-w-5xl mx-auto sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-5xl py-8 sm:px-6 lg:px-8">
 
         @if (session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+            <div class="mb-4 rounded bg-green-100 p-3 text-green-800">{{ session('success') }}</div>
         @endif
 
-        <div class="bg-white shadow sm:rounded-lg overflow-x-auto">
+        <div class="overflow-x-auto bg-white shadow sm:rounded-lg">
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-left">
                     <tr>
@@ -27,7 +27,7 @@
                             <td class="p-3">
                                 <form method="POST" action="{{ route('events.restore', $event) }}">
                                     @csrf @method('PATCH')
-                                    <button class="text-indigo-600">Restore</button>
+                                    <button class="text-maroon-600">Restore</button>
                                 </form>
                             </td>
                         </tr>
@@ -41,6 +41,6 @@
         </div>
 
         <div class="mt-4">{{ $events->links() }}</div>
-        <a href="{{ route('events.index') }}" class="inline-block mt-4 text-indigo-600">Back to events</a>
+        <a href="{{ route('events.index') }}" class="mt-4 inline-block text-maroon-600">Back to events</a>
     </div>
 </x-app-layout>

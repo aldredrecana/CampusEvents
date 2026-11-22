@@ -1,25 +1,25 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Staff: {{ $event->title }}</h2>
+        <h2 class="text-xl font-semibold text-gray-800">Staff: {{ $event->title }}</h2>
     </x-slot>
-    <div class="py-8 max-w-3xl mx-auto sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-3xl py-8 sm:px-6 lg:px-8">
 
         @if (session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+            <div class="mb-4 rounded bg-green-100 p-3 text-green-800">{{ session('success') }}</div>
         @endif
 
         <form method="POST" action="{{ route('events.staff.store', $event) }}"
-            class="bg-white p-4 shadow sm:rounded-lg mb-4 flex gap-3 items-end">
+            class="mb-4 flex items-end gap-3 bg-white p-4 shadow sm:rounded-lg">
             @csrf
             <div class="flex-1">
                 <x-input-label for="identifier" value="Add scanner staff: email or student number" />
-                <x-text-input id="identifier" name="identifier" class="block mt-1 w-full" :value="old('identifier')" required />
+                <x-text-input id="identifier" name="identifier" class="mt-1 block w-full" :value="old('identifier')" required />
                 <x-input-error :messages="$errors->get('identifier')" class="mt-1" />
             </div>
             <x-primary-button>Add</x-primary-button>
         </form>
 
-        <div class="bg-white shadow sm:rounded-lg overflow-x-auto">
+        <div class="overflow-x-auto bg-white shadow sm:rounded-lg">
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-left">
                     <tr>
@@ -50,6 +50,6 @@
             </table>
         </div>
 
-        <a href="{{ route('events.index') }}" class="inline-block mt-4 text-indigo-600">Back to events</a>
+        <a href="{{ route('events.index') }}" class="mt-4 inline-block text-maroon-600">Back to events</a>
     </div>
 </x-app-layout>

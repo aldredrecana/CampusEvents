@@ -9,6 +9,6 @@ return [
 
     'checkin_opens_minutes_before' => 30,
 
-    'qr_ttl_seconds' => env('QR_TTL_SECONDS', 60),
+    'qr_ttl_seconds' => (int) env('QR_TTL_SECONDS', 45),
     'min_minutes_before_checkout' => 5,
 ];
