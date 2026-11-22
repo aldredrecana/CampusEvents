@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('users', 'role')) {
+            return; // already added by the earlier add_role_to_users_table migration
+        }
+
         Schema::table('users', function (Blueprint $table) {
             $table->string('role')->default('student')->after('email');
         });
@@ -15,8 +19,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('role');
-        });
+        // Intentionally empty: the earlier migration owns the role column.
     }
 };
